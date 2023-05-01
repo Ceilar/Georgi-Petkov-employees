@@ -78,8 +78,51 @@ public class MainActivity extends AppCompatActivity {
                     employee.setEmpID(Integer.parseInt(tokens[0]));
                     employee.setProjectID(Integer.parseInt(tokens[1]));
                     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                    try {
+                        Date test = format.parse(tokens[2]);
+                    } catch (ParseException e) {
+                        try {
+                            format = new SimpleDateFormat("dd-MM-yy");
+                            Date test = format.parse(tokens[2]);
+
+                        } catch (ParseException e1) {
+                            try {
+                                format = new SimpleDateFormat("dd-MM-yyyy");
+                                Date test = format.parse(tokens[2]);
+                            } catch (ParseException e2) {
+                                try {
+                                    format = new SimpleDateFormat("MM-dd-yyyy");
+                                    Date test = format.parse(tokens[2]);
+                                } catch (ParseException e3) {
+                                    try {
+                                        format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                                        Date test = format.parse(tokens[2]);
+                                    } catch (ParseException e4) {
+                                        try {
+                                            format = new SimpleDateFormat("yyyy-MM-dd HH:mm.SSS");
+                                            Date test = format.parse(tokens[2]);
+                                        } catch (ParseException e5) {
+                                            try {
+                                                format = new SimpleDateFormat("yyyy-MM-dd HH:mm.SSSZ");
+                                                Date test = format.parse(tokens[2]);
+                                            } catch (ParseException e6) {
+                                                try {
+                                                    format = new SimpleDateFormat("EEEEE MMMMM yyyy HH:mm.SSSZ");
+                                                    Date test = format.parse(tokens[2]);
+                                                } catch (ParseException e7) {
+                                                    e7.printStackTrace();
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Date dateFrom = format.parse(tokens[2]);
                     employee.setDateFrom(dateFrom);
+
                     //проверка дали DateТо < DateFrom
                     if (tokens[3].equals("NULL")) {
                         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
@@ -111,7 +154,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public ArrayList<Pairs> daysWorked(Map<String, List<Employees>> projectMap) {
+    public ArrayList<Pairs> daysWorked
+            (Map<String, List<Employees>> projectMap) {
         long daysworked = 0;
         ArrayList<Pairs> pairList = new ArrayList<>();
         Pairs pair;
