@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -19,6 +20,7 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,8 +29,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
+    ArrayList<Pairs> pairsList = new ArrayList<Pairs>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
                     Date dateFrom = format.parse(tokens[2]);
                     employee.setDateFrom(dateFrom);
+                    //проверка дали DateТо < DateFrom
                     if (tokens[3].equals("NULL")) {
                         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
                         employee.setDateTo(format.parse(currentDate));
@@ -84,10 +89,10 @@ public class MainActivity extends AppCompatActivity {
                         employee.setDateTo(dateTo);
                     }
 
-                    if (!projectMap.containsKey(tokens[0])) {
-                        projectMap.put(tokens[0], new ArrayList<Employees>());
+                    if (!projectMap.containsKey(tokens[1])) {
+                        projectMap.put(tokens[1], new ArrayList<Employees>());
                     }
-                    projectMap.get(tokens[0]).add(employee);
+                    projectMap.get(tokens[1]).add(employee);
 
 
                 }
@@ -98,22 +103,38 @@ public class MainActivity extends AppCompatActivity {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        pairsList = daysWorked(projectMap);
+        Intent intent = new Intent(MainActivity.this, DatagridActivity.class);
+        intent.putExtra("Pairs List", pairsList);
+        startActivity(intent);
+
 
     }
 
-    public void daysWorked(Map<String, List<Employees>> projectMap) {
+    public ArrayList<Pairs> daysWorked(Map<String, List<Employees>> projectMap) {
+        long daysworked = 0;
+        ArrayList<Pairs> pairList = new ArrayList<>();
+        Pairs pair;
         for (String project : projectMap.keySet()) {
             Collections.sort(projectMap.get(project));
-            for(int i=0;i<=projectMap.get(project).size()-2; i++){
-                for(int j=1;j<projectMap.get(project).size()-i;j++) {
-                    if(projectMap.get(project).get(i).getDateTo().before(projectMap.get(project).get(i+j).getDateFrom())){
-                        if(projectMap.get(project).get(i).getDateTo().before(projectMap.get(project).get(i+j).getDateTo())){
-                            ChronoUnit.DAYS.between(projectMap.get(project).get(i).getDateTo(),projectMap.get(project).get(i+j).getDateFrom())
+            for (int i = 0; i <= projectMap.get(project).size() - 2; i++) {
+                for (int j = i + 1; j <= projectMap.get(project).size() - 1; j++) {
+                    if (projectMap.get(project).get(i).getDateTo().after(projectMap.get(project).get(j).getDateFrom())) {
+                        if (projectMap.get(project).get(i).getDateTo().before(projectMap.get(project).get(j).getDateTo())) {
+                            daysworked = projectMap.get(project).get(i).getDateTo().getTime() - projectMap.get(project).get(j).getDateFrom().getTime();
+
+                        } else {
+                            daysworked = projectMap.get(project).get(j).getDateTo().getTime() - projectMap.get(project).get(j).getDateFrom().getTime();
                         }
+                        daysworked = TimeUnit.DAYS.convert(daysworked, TimeUnit.MILLISECONDS);
+                        pair = new Pairs(projectMap.get(project).get(i).getEmpID(), projectMap.get(project).get(j).getEmpID(), projectMap.get(project).get(j).getProjectID(), (int) daysworked);
+                        pairList.add(pair);
+                        //fill arraylist<Emp1,Emp2,ProjID,daysworked> then visualise
                     }
                 }
             }
         }
+        return pairList;
     }
 
 
